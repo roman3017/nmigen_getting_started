@@ -13,22 +13,23 @@ class TestModule( Elaboratable ):
       m.d.sync += self.count.eq( 0 )
     return m
 
-from nmigen.back.pysim import *
+from nmigen.sim import *
 
 if __name__ == "__main__":
   dut = TestModule()
-  with Simulator( dut, vcd_file = open( 'test.vcd', 'w' ) ) as sim:
-    def proc():
-      # Run for 50 clock cycles, and check that the 'count' signal
-      # equals the number of elapsed cycles. This should start
-      # to fail after tick #42, because the 'count' value resets.
-      for i in range( 50 ):
-        c = yield dut.count
-        if c == i:
-          print( "PASS: count == %d"%i )
-        else:
-          print( "FAIL: count != %d (got: %d)"%( i, c ) )
-        yield Tick()
-    sim.add_clock( 1e-6 )
-    sim.add_sync_process( proc )
+  sim = Simulator( dut )
+  def proc():
+    # Run for 50 clock cycles, and check that the 'count' signal
+    # equals the number of elapsed cycles. This should start
+    # to fail after tick #42, because the 'count' value resets.
+    for i in range( 50 ):
+      c = yield dut.count
+      if c == i:
+        print( "PASS: count == %d"%i )
+      else:
+        print( "FAIL: count != %d (got: %d)"%( i, c ) )
+      yield Tick()
+  sim.add_clock( 1e-6 )
+  sim.add_sync_process( proc )
+  with sim.write_vcd( "test.vcd" ):
     sim.run()

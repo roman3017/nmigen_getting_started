@@ -1,6 +1,6 @@
 from nmigen import *
 from math import ceil, log2
-from nmigen.back.pysim import *
+from nmigen.sim import *
 from nmigen_soc.memory import *
 from nmigen_soc.wishbone import *
 from nmigen_boards.resources import *
@@ -257,13 +257,14 @@ if __name__ == "__main__":
   dut = SPI_ROM( off, off + 1024, [ 0x89ABCDEF, 0x0C0FFEE0, 0xBABABABA, 0xABACADAB, 0xDEADFACE, 0x12345678, 0x87654321, 0xDEADBEEF, 0xDEADBEEF ] )
 
   # Run the SPI ROM tests.
-  with Simulator( dut, vcd_file = open( 'spi_rom.vcd', 'w' ) ) as sim:
-    def proc():
-      # Wait until the 'release power-down' command is sent.
-      # TODO: test that startup condition.
-      for i in range( 30 ):
-        yield Tick()
-      yield from spi_rom_tests( dut )
-    sim.add_clock( 1e-6 )
-    sim.add_sync_process( proc )
+  sim = Simulator( dut )
+  def proc():
+    # Wait until the 'release power-down' command is sent.
+    # TODO: test that startup condition.
+    for i in range( 30 ):
+      yield Tick()
+    yield from spi_rom_tests( dut )
+  sim.add_clock( 1e-6 )
+  sim.add_sync_process( proc )
+  with sim.write_vcd( "spi_rom.vcd" ):
     sim.run()

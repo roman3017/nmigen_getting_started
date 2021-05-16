@@ -1,6 +1,6 @@
 from nmigen import *
 from math import ceil, log2
-from nmigen.back.pysim import *
+from nmigen.sim import *
 from nmigen_soc.memory import *
 from nmigen_soc.wishbone import *
 
@@ -66,14 +66,15 @@ if __name__ == "__main__":
                0x0C0FFEE0, 0xDEC0FFEE,
                0xFEEBEEDE ] )
   # Run the simulation.
-  with Simulator( dut, vcd_file = open( 'rom.vcd', 'w' ) ) as sim:
-    def proc():
-      # Test reads.
-      yield from rom_read_ut( dut, 0, 0x01234567 )
-      yield from rom_read_ut( dut, 1, 0x89ABCDEF )
-      yield from rom_read_ut( dut, 2, 0x0C0FFEE0 )
-      yield from rom_read_ut( dut, 3, 0xDEC0FFEE )
-      yield from rom_read_ut( dut, 4, 0xFEEBEEDE )
-    sim.add_clock( 1e-6 )
-    sim.add_sync_process( proc )
+  sim = Simulator( dut )
+  def proc():
+    # Test reads.
+    yield from rom_read_ut( dut, 0, 0x01234567 )
+    yield from rom_read_ut( dut, 1, 0x89ABCDEF )
+    yield from rom_read_ut( dut, 2, 0x0C0FFEE0 )
+    yield from rom_read_ut( dut, 3, 0xDEC0FFEE )
+    yield from rom_read_ut( dut, 4, 0xFEEBEEDE )
+  sim.add_clock( 1e-6 )
+  sim.add_sync_process( proc )
+  with sim.write_vcd( "rom.vcd" ):
     sim.run()
